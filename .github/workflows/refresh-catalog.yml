@@ -1,0 +1,90 @@
+name: Refresh catalog and publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      refresh_vrdb:
+        description: Also refresh VRDB public metadata (slower)
+        type: boolean
+        default: false
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out trusted main branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Test collection and public-data guards
+        run: |
+          python -m unittest discover -s scripts/tests
+          python -m unittest discover -s tests -p 'test_*.py'
+          node tests/catalog-core.test.mjs
+          python tests/validate_public.py --history
+      - name: Refresh public metadata
+        env:
+          IGDB_CLIENT_ID: ${{ secrets.IGDB_CLIENT_ID }}
+          IGDB_CLIENT_SECRET: ${{ secrets.IGDB_CLIENT_SECRET }}
+          REFRESH_VRDB: ${{ inputs.refresh_vrdb }}
+          CACHE_DIRECTORY: ${{ runner.temp }}/catalog-cache
+        run: |
+          set -euo pipefail
+          if [ -z "${IGDB_CLIENT_ID:-}" ] || [ -z "${IGDB_CLIENT_SECRET:-}" ]; then
+            echo "::error::Add repository secrets IGDB_CLIENT_ID and IGDB_CLIENT_SECRET before running this workflow."
+            exit 1
+          fi
+          args=(--seed site/catalog.json --output site/catalog.json --igdb --cache-dir "$CACHE_DIRECTORY")
+          if [ "$REFRESH_VRDB" = "true" ]; then args+=(--vrdb); fi
+          python scripts/collect_catalog.py "${args[@]}"
+      - name: Reject private links before committing or uploading
+        run: python tests/validate_public.py --history
+      - name: Commit only the sanitized catalog
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- site/catalog.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh public game metadata"
+            git push origin HEAD:main
+          fi
+      # GITHUB_TOKEN pushes do not start another workflow. Publish this exact
+      # refreshed catalog here instead of relying on the push trigger above.
+      - name: Configure Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - name: Upload only the public website
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+          retention-days: 1
+          include-hidden-files: true
+      - name: Publish refreshed website
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

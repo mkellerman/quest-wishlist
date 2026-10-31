@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1017">
+  <meta name="description" content="Browse your Quest game collection, preview games, and save a personal game wishlist.">
+  <title>Quest Wishlist — Your next world</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#games">Skip to games</a>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Quest Wishlist home"><span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>QUEST<span class="brand-light"> / WISHLIST</span></span></a>
+    <div class="personal"><span></span> Your personal collection</div>
+    <button id="export" class="button export-button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 15v5h14v-5"/></svg>Export favorites</button>
+  </header>
+  <div class="app-layout">
+    <aside class="sidebar" aria-label="Catalog navigation and filters">
+      <div class="eyebrow">YOUR COLLECTION</div>
+      <nav aria-label="Collection views">
+        <button id="browse" class="nav-button active" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>All games <span id="all-count">—</span></button>
+        <button id="favorites" class="nav-button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v17l-7-4-7 4z"/></svg>Favorites <span id="favorite-count">0</span></button>
+      </nav>
+      <div class="filter-heading"><span class="eyebrow">REFINE YOUR SEARCH</span><button id="reset" class="text-button">Reset</button></div>
+      <label class="field-label" for="genre">Genre</label>
+      <select id="genre"><option value="">All genres</option></select>
+      <label class="field-label" for="mode">Game mode</label>
+      <select id="mode"><option value="">All game modes</option></select>
+      <label class="field-label" for="quest-year">Quest release year</label>
+      <select id="quest-year" title="Uses known Quest release dates; unresolved dates are under Unknown"><option value="">All years</option></select>
+      <fieldset class="rating-filter">
+        <legend>Rating</legend>
+        <p class="rating-hint">Minimum store rating · rounded down</p>
+        <div class="rating-options">
+          <label class="check-row rating-option" title="Store rating of 5.0"><input type="checkbox" data-rating="5" aria-label="5 stars"><span class="rating-stars" aria-hidden="true">★★★★★</span><span>5 stars</span><span class="rating-count" data-rating-count="5" aria-hidden="true">—</span></label>
+          <label class="check-row rating-option" title="Store rating of at least 4.0"><input type="checkbox" data-rating="4" aria-label="4+ stars"><span class="rating-stars" aria-hidden="true">★★★★<i>☆</i></span><span>4+ stars</span><span class="rating-count" data-rating-count="4" aria-hidden="true">—</span></label>
+          <label class="check-row rating-option" title="Store rating of at least 3.0"><input type="checkbox" data-rating="3" aria-label="3+ stars"><span class="rating-stars" aria-hidden="true">★★★<i>☆☆</i></span><span>3+ stars</span><span class="rating-count" data-rating-count="3" aria-hidden="true">—</span></label>
+          <label class="check-row rating-option" title="Store rating of at least 2.0"><input type="checkbox" data-rating="2" aria-label="2+ stars"><span class="rating-stars" aria-hidden="true">★★<i>☆☆☆</i></span><span>2+ stars</span><span class="rating-count" data-rating-count="2" aria-hidden="true">—</span></label>
+          <label class="check-row rating-option" title="Store rating of at least 1.0"><input type="checkbox" data-rating="1" aria-label="1+ star"><span class="rating-stars" aria-hidden="true">★<i>☆☆☆☆</i></span><span>1+ star</span><span class="rating-count" data-rating-count="1" aria-hidden="true">—</span></label>
+          <label class="check-row rating-option" title="No store rating available"><input type="checkbox" data-rating="none" aria-label="None (unrated)"><span class="rating-stars" aria-hidden="true"><i>☆☆☆☆☆</i></span><span>None</span><span class="rating-count" data-rating-count="none" aria-hidden="true">—</span></label>
+        </div>
+      </fieldset>
+      <label class="check-row image-filter"><input type="checkbox" id="images-only"><span>With preview images</span></label>
+      <div class="sidebar-bottom">
+        <div class="save-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><div><strong>Pick it. Keep it.</strong><p>Checked games save automatically in this browser.</p></div></div>
+        <button id="import" class="text-button restore-button">Restore a saved favorites list</button>
+        <input type="file" id="import-file" accept="application/json,.json" hidden>
+      </div>
+    </aside>
+    <main>
+      <section class="intro">
+        <div><div class="eyebrow accent">A NEW WORLD IS ONE PICK AWAY</div><h1 id="view-title">Your next Quest.</h1><p id="intro-copy">Explore the catalog. Check the games you want to play.</p></div>
+        <div class="catalog-badge"><span class="badge-label">THE COLLECTION</span><strong id="hero-count">—</strong><span>games & experiences</span></div>
+      </section>
+      <section class="tools" aria-label="Search and sort">
+        <div class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="search" type="search" placeholder="Search games, genres, developers…" aria-label="Search games"><kbd aria-hidden="true">/</kbd></div>
+        <label class="sort-label" for="sort">Sort by</label><select id="sort" aria-label="Sort games">
+          <option value="title-asc">Title · A–Z</option><option value="title-desc">Title · Z–A</option>
+          <option value="quest-newest">Quest release · Newest</option><option value="quest-oldest">Quest release · Oldest</option>
+          <option value="store-newest">Store date · Newest</option><option value="store-oldest">Store date · Oldest</option>
+          <option value="rating-high">Store rating · Highest</option><option value="reviews-high">Review count · Most</option>
+          <option value="size-low">Size · Smallest</option><option value="size-high">Size · Largest</option>
+          <option value="updated-newest">Last updated · Newest</option><option value="developer-asc">Developer · A–Z</option>
+          <option value="favorited-newest">Recently favorited</option>
+        </select>
+      </section>
+      <div class="results-bar"><p id="results" role="status" aria-live="polite">Loading your catalog…</p><span id="save-status" class="save-status">Favorites save automatically</span></div>
+      <div id="storage-warning" class="notice" hidden>Browser storage is unavailable. Export your favorites before closing this page.</div>
+      <section id="games" class="game-grid" aria-label="Games" aria-busy="true"><div class="loading-state"><span class="spinner"></span>Loading your collection…</div></section>
+      <div id="empty" class="empty-state" hidden><div class="empty-symbol">✧</div><h2 id="empty-title">No games found</h2><p id="empty-copy">Try a different search or reset your filters.</p><button id="empty-reset" class="button">Reset filters</button></div>
+      <div class="more-row"><button id="load-more" class="button" hidden>Show more games</button><span id="page-note"></span></div>
+      <footer class="catalog-footer"><span id="catalog-note">VR game wishlist catalog</span><span>Image links and availability can change. Missing images use a placeholder.</span></footer>
+    </main>
+  </div>
+  <dialog id="details" aria-labelledby="detail-title"><button id="close-detail" class="close-button" aria-label="Close game details">×</button><div id="detail-content"></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

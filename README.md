@@ -36,7 +36,7 @@ IGDB authenticates using a Twitch **client ID and client secret**, rather than a
 
 Do not commit these values, an access token, or a credentials file. The collector exchanges the credentials with Twitch over HTTPS and holds the resulting access token only in process memory. Secrets are used by the manual collection workflow and are never bundled into the website.
 
-Once both secrets are configured, run the **Refresh catalog** workflow from the Actions tab. Refreshing is manual; there is no recurring schedule.
+Once both secrets are configured, run **Refresh catalog and publish** from the Actions tab. Check the optional `refresh_vrdb` input to collect supplementary public VRDB metadata. Refreshing is manual; there is no recurring schedule.
 
 The collection CLI is:
 
@@ -45,6 +45,19 @@ python3 scripts/collect_catalog.py --seed site/catalog.json --output site/catalo
 ```
 
 Add `--vrdb` to collect supplementary public VRDB metadata. Local raw caches belong in ignored directories; only the sanitized public catalog should be committed. Run `python3 scripts/collect_catalog.py --help` for cached/offline inputs and additional options.
+
+Refresh updates the existing seed catalog. It keeps game and release IDs stable so saved favorites continue to work. It does not scan your device or add new Android packages automatically.
+
+## Checks
+
+```sh
+node tests/catalog-core.test.mjs
+python3 -m unittest discover -s scripts/tests
+python3 -m unittest discover -s tests -p 'test_*.py'
+python3 tests/validate_public.py --history
+```
+
+The publishing workflow rejects download-directory fields, known private mirror links, credential-bearing URLs, and private exports before uploading the website. The history check also guards against accidentally publishing a previously committed private file.
 
 ## Data and provenance
 
