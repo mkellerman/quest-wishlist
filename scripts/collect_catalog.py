@@ -116,9 +116,10 @@ def compact_dates(evidence):
         if key in seen:
             continue
         seen.add(key)
+        warnings = ([item['scope_warning']] if item.get('scope_warning') else []) + item.get('source_issues', [])
         result.append({'date': item.get('date'), 'precision': item.get('precision'), 'source': item.get('source'),
                        'url': item.get('entity_url') or item.get('source_url'), 'milestone': milestone,
-                       **({'note': item['scope_warning']} if item.get('scope_warning') else {})})
+                       **({'note': '; '.join(warnings)} if warnings else {})})
     return result[:8]
 
 
@@ -280,6 +281,14 @@ def refresh(seed, igdb_records=None, platforms=None, igdb_manifest=None, vrdb_re
         if igdb and ids and meta_ids(igdb) and ids.isdisjoint(meta_ids(igdb)):
             igdb, method = None, None
             reasons.append('known_store_identity_contradicts_igdb_candidate_links')
+        if igdb and method == 'unique_exact_normalized_quest_title':
+            store_named = set()
+            for row in (vrdb, qsdb):
+                if row:
+                    store_named.update(by_igdb_title.get(norm(row['name']), {}))
+            if store_named and igdb['id'] not in store_named:
+                igdb, method = None, None
+                reasons.append('catalog_and_store_titles_point_to_different_igdb_records')
         game['collectionStatus'] = {
             'igdbMatch': {'method': method, 'confidence': 'medium' if igdb else None, 'status': 'refreshed' if igdb else 'retained_or_unresolved', 'reasons': reasons},
             'vrdbMatch': 'refreshed_by_store_id' if vrdb else 'retained_or_unresolved',

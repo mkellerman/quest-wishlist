@@ -63,6 +63,6 @@ The publishing workflow rejects download-directory fields, known private mirror 
 
 Metadata comes from [IGDB](https://www.igdb.com/), [Quest Store DB](https://queststoredb.com/), and [VRDB](https://vrdb.app/). Each matched record retains source links and retrieval timestamps. Images are links to provider-hosted media; missing images use placeholders.
 
-The collectors preserve date precision and separate Quest release milestones from store dates and releases on other platforms. Conflicting dates, uncertain editions, and unresolved matches remain flagged. Favorites and stable catalog IDs survive metadata refreshes.
+The collectors preserve date precision and separate Quest release milestones from store dates and releases on other platforms. Conflicting dates, uncertain editions, and unresolved matches remain flagged. Existing date conflicts require an evidence review before they can be cleared; automated refreshes retain them. Favorites and stable catalog IDs survive metadata refreshes.
 
 Download URLs, credentials, original private exports, and the former site's Git history are intentionally absent from this repository.

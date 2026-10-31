@@ -157,6 +157,13 @@ class MatchingTests(unittest.TestCase):
         result = refresh(original, [record(meta=None)], [QUEST])
         self.assertFalse(result['games'][0].get('igdbUrl'))
 
+    def test_catalog_and_store_titles_cannot_resolve_to_different_games(self):
+        vrdb = {'id': META_ID, 'name': 'Other Game', 'slug': 'other-game', 'platforms': ['Meta Quest']}
+        result = refresh(seed(), [record(meta=None), record(2, 'Other Game', meta=None)], [QUEST], vrdb_records=[vrdb])
+        match = result['games'][0]['collectionStatus']['igdbMatch']
+        self.assertIsNone(match['method'])
+        self.assertIn('catalog_and_store_titles_point_to_different_igdb_records', match['reasons'])
+
 
 class DateTests(unittest.TestCase):
     def test_igdb_declared_precision_is_preserved(self):
